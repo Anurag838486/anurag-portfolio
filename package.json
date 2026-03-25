@@ -1,0 +1,15 @@
+{
+  "name": "anurag-portfolio",
+  "version": "1.0.0",
+  "description": "Anurag Sharma Full Stack Portfolio",
+  "scripts": {
+    "install-all": "cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\"",
+    "start-backend": "cd backend && npm start",
+    "start-frontend": "cd frontend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "vite": "^8.0.2"
+  }
+}
