@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Download, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import useInView from '../hooks/useInView';
 
 const Resume = () => {
