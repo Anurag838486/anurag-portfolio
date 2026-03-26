@@ -4,8 +4,9 @@ import useInView from '../hooks/useInView';
 const Contact = () => {
   const [ref, inView] = useInView();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
-  const [status, setStatus] = useState(null); // 'loading' | 'success' | 'error'
+  const [status, setStatus] = useState(null);
   const [errors, setErrors] = useState({});
+  const [focused, setFocused] = useState(null);
 
   const validate = () => {
     const e = {};
@@ -28,12 +29,13 @@ const Contact = () => {
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setStatus('loading');
     try {
-      const res = await fetch('/api/contact', {
+      const apiBase = process.env.REACT_APP_API_URL || '';
+      const res = await fetch(`${apiBase}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
+      await res.json();
       if (res.ok) {
         setStatus('success');
         setForm({ name: '', email: '', subject: '', message: '' });
@@ -46,180 +48,304 @@ const Contact = () => {
     setTimeout(() => setStatus(null), 5000);
   };
 
-  const inputStyle = (field) => ({
-    width: '100%', padding: '14px 18px',
-    background: 'var(--bg-secondary)',
-    border: `1px solid ${errors[field] ? '#ef4444' : 'var(--border-subtle)'}`,
-    borderRadius: '10px', color: 'var(--text-primary)',
-    fontSize: '15px', fontFamily: "var(--font-display)",
-    outline: 'none', transition: 'all 0.2s',
-    boxSizing: 'border-box',
-  });
-
   const contactInfo = [
-    { icon: '✉', label: 'Email', value: 'panditanuragsharma90@gmail.com', href: 'mailto:panditanuragsharma90@gmail.com', color: 'var(--accent-primary)' },
-    { icon: '📱', label: 'Phone', value: '+91-9410414196', href: 'tel:+919410414196', color: 'var(--accent-secondary)' },
-    { icon: '◈', label: 'LinkedIn', value: 'anurag-sharma-02705129b', href: 'https://www.linkedin.com/in/anurag-sharma-02705129b/', color: 'var(--accent-tertiary)' },
-    { icon: '⌥', label: 'GitHub', value: 'Anurag838486', href: 'https://github.com/Anurag838486', color: 'var(--accent-warm)' },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+        </svg>
+      ),
+      label: 'Email',
+      value: 'panditanuragsharma90@gmail.com',
+      href: 'mailto:panditanuragsharma90@gmail.com',
+      accentVar: '--accent-primary',
+    },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 12 19.79 19.79 0 0 1 1.08 3.41a2 2 0 0 1 1.99-2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z" />
+        </svg>
+      ),
+      label: 'Phone',
+      value: '+91-9410414196',
+      href: 'tel:+919410414196',
+      accentVar: '--accent-secondary',
+    },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" />
+        </svg>
+      ),
+      label: 'LinkedIn',
+      value: 'anurag-sharma-02705129b',
+      href: 'https://www.linkedin.com/in/anurag-sharma-02705129b/',
+      accentVar: '--accent-tertiary',
+    },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+        </svg>
+      ),
+      label: 'GitHub',
+      value: 'Anurag838486',
+      href: 'https://github.com/Anurag838486',
+      accentVar: '--accent-warm',
+    },
   ];
+
+  const getInputStyle = (field) => ({
+    width: '100%',
+    padding: '13px 16px',
+    background: 'rgba(255,255,255,0.04)',
+    border: `1px solid ${errors[field] ? '#ef4444' : focused === field ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)'}`,
+    borderRadius: '10px',
+    color: 'var(--text-primary)',
+    fontSize: '14px',
+    fontFamily: 'var(--font-display)',
+    outline: 'none',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+    boxSizing: 'border-box',
+    boxShadow: focused === field ? `0 0 0 3px color-mix(in srgb, var(--accent-primary) 15%, transparent)` : 'none',
+  });
 
   return (
     <section id="contact" className="section" ref={ref}>
+      <style>{`
+        .contact-info-card {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 16px 18px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 14px;
+          text-decoration: none;
+          transition: background 0.2s, border-color 0.2s, transform 0.2s;
+          margin-bottom: 12px;
+        }
+        .contact-info-card:hover {
+          background: rgba(255,255,255,0.07);
+          border-color: rgba(255,255,255,0.15);
+          transform: translateX(4px);
+        }
+        .contact-icon-wrap {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .contact-submit-btn {
+          width: 100%;
+          padding: 14px;
+          background: var(--accent-primary);
+          border: none;
+          border-radius: 10px;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 600;
+          font-family: var(--font-display);
+          cursor: pointer;
+          transition: opacity 0.2s, transform 0.15s;
+          margin-top: 4px;
+          letter-spacing: 0.02em;
+        }
+        .contact-submit-btn:hover:not(:disabled) {
+          opacity: 0.88;
+          transform: translateY(-1px);
+        }
+        .contact-submit-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        .form-field-wrap {
+          margin-bottom: 14px;
+        }
+        .field-error {
+          font-size: 12px;
+          color: #ef4444;
+          margin-top: 5px;
+          padding-left: 4px;
+        }
+        @media (max-width: 768px) {
+          .contact-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+
       <div className="container">
-        <div style={{ opacity: inView ? 1 : 0, transform: inView ? 'none' : 'translateY(30px)', transition: 'all 0.7s ease', textAlign: 'center', marginBottom: '60px' }}>
+
+        {/* Header */}
+        <div style={{
+          opacity: inView ? 1 : 0,
+          transform: inView ? 'none' : 'translateY(30px)',
+          transition: 'all 0.7s ease',
+          textAlign: 'center',
+          marginBottom: '60px'
+        }}>
           <div className="section-tag" style={{ justifyContent: 'center' }}>07 — Contact</div>
-          <h2 className="section-title" style={{ textAlign: 'center' }}>Contact Me</h2>
+          <h2 className="section-title">Contact Me</h2>
           <p style={{ color: 'var(--text-muted)', maxWidth: '500px', margin: '0 auto' }}>
-            Have a project in mind? I'd love to hear about it. Send me a message and let's create something amazing.
+            Have a project in mind? I'd love to hear about it.
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '48px', alignItems: 'start' }} className="contact-grid">
-          {/* Left — Contact info */}
-          <div style={{ opacity: inView ? 1 : 0, transform: inView ? 'none' : 'translateX(-30px)', transition: 'all 0.7s ease 0.1s' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Get In Touch</h3>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '32px', lineHeight: 1.7 }}>
-              I'm currently open to new opportunities. Whether you have a job opportunity, project, or just want to say hi — my inbox is always open!
+        {/* Grid */}
+        <div
+          className="contact-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1.4fr',
+            gap: '48px',
+            opacity: inView ? 1 : 0,
+            transform: inView ? 'none' : 'translateY(20px)',
+            transition: 'all 0.7s ease 0.2s',
+          }}
+        >
+
+          {/* LEFT — Contact Info */}
+          <div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.6 }}>
+              Feel free to reach out through any of these channels. I typically respond within 24 hours.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {contactInfo.map((info, i) => (
-                <a key={i} href={info.href} target="_blank" rel="noreferrer"
+            {contactInfo.map((info, i) => (
+              <a
+                key={i}
+                href={info.href}
+                target="_blank"
+                rel="noreferrer"
+                className="contact-info-card"
+              >
+                <div
+                  className="contact-icon-wrap"
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '14px',
-                    padding: '16px 20px', borderRadius: '12px', textDecoration: 'none',
-                    background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)',
-                    transition: 'all 0.2s',
+                    background: `color-mix(in srgb, var(${info.accentVar}) 15%, transparent)`,
+                    color: `var(${info.accentVar})`,
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = `${info.color}0d`; e.currentTarget.style.borderColor = `${info.color}33`; e.currentTarget.style.transform = 'translateX(4px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,229,255,0.08)'; e.currentTarget.style.transform = 'none'; }}
                 >
-                  <div style={{
-                    width: '40px', height: '40px', borderRadius: '10px',
-                    background: `${info.color}15`, border: `1px solid ${info.color}30`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '18px', color: info.color, flexShrink: 0,
-                  }}>{info.icon}</div>
-                  <div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: '10px', color: info.color, letterSpacing: '1px', marginBottom: '2px' }}>
-                      {info.label}
-                    </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, wordBreak: 'break-all' }}>
-                      {info.value}
-                    </div>
+                  {info.icon}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    {info.label}
                   </div>
-                </a>
-              ))}
-            </div>
+                  <div style={{
+                    fontSize: '13.5px',
+                    color: 'var(--text-primary)',
+                    fontWeight: 500,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {info.value}
+                  </div>
+                </div>
+                <div style={{ marginLeft: 'auto', color: 'var(--text-muted)', flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M7 17L17 7M17 7H7M17 7v10" />
+                  </svg>
+                </div>
+              </a>
+            ))}
           </div>
 
-          {/* Right — Form */}
-          <div className="glass-card" style={{
-            padding: '36px',
-            opacity: inView ? 1 : 0,
-            transform: inView ? 'none' : 'translateX(30px)',
-            transition: 'all 0.7s ease 0.2s',
+          {/* RIGHT — Form */}
+          <div style={{
+            background: 'rgba(255,255,255,0.02)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: '20px',
+            padding: '32px',
           }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '28px' }}>Send a Message</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+              Send a Message
+            </h3>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }} className="form-row">
-                {/* Name */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontFamily: "var(--font-mono)", color: 'var(--accent-primary)', letterSpacing: '1px', marginBottom: '8px' }}>
-                    NAME *
-                  </label>
-                  <input name="name" value={form.name} onChange={handleChange}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                <div className="form-field-wrap" style={{ margin: 0 }}>
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    onFocus={() => setFocused('name')}
+                    onBlur={() => setFocused(null)}
                     placeholder="Your name"
-                    style={inputStyle('name')}
-                    onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)'; e.target.style.boxShadow = 'var(--shadow-glow)'; }}
-                    onBlur={e => { e.target.style.borderColor = errors.name ? '#ef4444' : 'var(--border-subtle)'; e.target.style.boxShadow = 'none'; }}
+                    style={getInputStyle('name')}
                   />
-                  {errors.name && <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>{errors.name}</div>}
+                  {errors.name && <div className="field-error">{errors.name}</div>}
                 </div>
-
-                {/* Email */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontFamily: "var(--font-mono)", color: 'var(--accent-primary)', letterSpacing: '1px', marginBottom: '8px' }}>
-                    EMAIL *
-                  </label>
-                  <input name="email" value={form.email} onChange={handleChange}
+                <div className="form-field-wrap" style={{ margin: 0 }}>
+                  <input
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    onFocus={() => setFocused('email')}
+                    onBlur={() => setFocused(null)}
                     placeholder="your@email.com"
-                    style={inputStyle('email')}
-                    onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)'; e.target.style.boxShadow = 'var(--shadow-glow)'; }}
-                    onBlur={e => { e.target.style.borderColor = errors.email ? '#ef4444' : 'var(--border-subtle)'; e.target.style.boxShadow = 'none'; }}
+                    style={getInputStyle('email')}
                   />
-                  {errors.email && <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>{errors.email}</div>}
+                  {errors.email && <div className="field-error">{errors.email}</div>}
                 </div>
               </div>
 
-              {/* Subject */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontFamily: "var(--font-mono)", color: 'var(--accent-primary)', letterSpacing: '1px', marginBottom: '8px' }}>
-                  SUBJECT *
-                </label>
-                <input name="subject" value={form.subject} onChange={handleChange}
-                  placeholder="What's this about?"
-                  style={inputStyle('subject')}
-                  onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)'; e.target.style.boxShadow = 'var(--shadow-glow)'; }}
-                  onBlur={e => { e.target.style.borderColor = errors.subject ? '#ef4444' : 'var(--border-subtle)'; e.target.style.boxShadow = 'none'; }}
+              <div className="form-field-wrap">
+                <input
+                  name="subject"
+                  value={form.subject}
+                  onChange={handleChange}
+                  onFocus={() => setFocused('subject')}
+                  onBlur={() => setFocused(null)}
+                  placeholder="Subject"
+                  style={getInputStyle('subject')}
                 />
-                {errors.subject && <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>{errors.subject}</div>}
+                {errors.subject && <div className="field-error">{errors.subject}</div>}
               </div>
 
-              {/* Message */}
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontFamily: "var(--font-mono)", color: 'var(--accent-primary)', letterSpacing: '1px', marginBottom: '8px' }}>
-                  MESSAGE *
-                </label>
-                <textarea name="message" value={form.message} onChange={handleChange}
-                  placeholder="Tell me about your project or just say hi..."
+              <div className="form-field-wrap">
+                <textarea
+                  name="message"
+                  value={form.message}
+                  onChange={handleChange}
+                  onFocus={() => setFocused('message')}
+                  onBlur={() => setFocused(null)}
+                  placeholder="Tell me about your project..."
                   rows={5}
-                  style={{ ...inputStyle('message'), resize: 'vertical', minHeight: '120px' }}
-                  onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)'; e.target.style.boxShadow = 'var(--shadow-glow)'; }}
-                  onBlur={e => { e.target.style.borderColor = errors.message ? '#ef4444' : 'var(--border-subtle)'; e.target.style.boxShadow = 'none'; }}
+                  style={{ ...getInputStyle('message'), resize: 'vertical', minHeight: '120px' }}
                 />
-                {errors.message && <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>{errors.message}</div>}
+                {errors.message && <div className="field-error">{errors.message}</div>}
               </div>
 
-              {/* Submit */}
-              <button type="submit" className="btn-primary"
-                style={{ width: '100%', justifyContent: 'center', opacity: status === 'loading' ? 0.7 : 1 }}
-                disabled={status === 'loading'}
-              >
-                {status === 'loading' ? 'Sending...' : 'Send Message →'}
+              <button type="submit" className="contact-submit-btn" disabled={status === 'loading'}>
+                {status === 'loading' ? 'Sending…' : 'Send Message →'}
               </button>
 
-              {/* Status messages */}
               {status === 'success' && (
                 <div style={{
-                  marginTop: '16px', padding: '14px', borderRadius: '10px',
-                  background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)',
-                  color: '#10b981', fontSize: '14px', textAlign: 'center',
+                  marginTop: '12px', padding: '12px 16px',
+                  background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)',
+                  borderRadius: '10px', color: '#4ade80', fontSize: '14px', textAlign: 'center'
                 }}>
-                  ✅ Message sent! I'll get back to you soon.
+                  ✓ Message sent! I'll get back to you soon.
                 </div>
               )}
               {status === 'error' && (
                 <div style={{
-                  marginTop: '16px', padding: '14px', borderRadius: '10px',
+                  marginTop: '12px', padding: '12px 16px',
                   background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-                  color: '#ef4444', fontSize: '14px', textAlign: 'center',
+                  borderRadius: '10px', color: '#f87171', fontSize: '14px', textAlign: 'center'
                 }}>
-                  ❌ Failed to send. Please try emailing directly.
+                  ✕ Something went wrong. Please try again.
                 </div>
               )}
             </form>
           </div>
+
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .contact-grid { grid-template-columns: 1fr !important; }
-          .form-row { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </section>
   );
 };
