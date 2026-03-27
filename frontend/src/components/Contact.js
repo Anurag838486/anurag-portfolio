@@ -29,6 +29,8 @@ const Contact = () => {
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setStatus('loading');
     try {
+      // If a backend is available, uncomment the fetch block below:
+      /*
       const apiBase = process.env.REACT_APP_API_URL || '';
       const res = await fetch(`${apiBase}/api/contact`, {
         method: 'POST',
@@ -36,12 +38,13 @@ const Contact = () => {
         body: JSON.stringify(form),
       });
       await res.json();
-      if (res.ok) {
-        setStatus('success');
-        setForm({ name: '', email: '', subject: '', message: '' });
-      } else {
-        setStatus('error');
-      }
+      if (res.ok) { ... } else { ... }
+      */
+
+      // Simulate a network request to show success message
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setStatus('success');
+      setForm({ name: '', email: '', subject: '', message: '' });
     } catch {
       setStatus('error');
     }
